@@ -85,15 +85,6 @@ class GPXFilesTableViewController: UITableViewController, UINavigationBarDelegat
         return gpxFilesFound
     }
     
-    override func tableView(tableView: UITableView,
-        commitEditingStyle editingStyle: UITableViewCellEditingStyle,
-        forRowAtIndexPath indexPath: NSIndexPath) {
-            
-        if editingStyle == UITableViewCellEditingStyle.Delete {
-            actionDeleteFileAtIndex(indexPath.row)
-        }
-    }
-    
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         //let cell = tableView.dequeueReusableCellWithIdentifier("cell", forIndexPath: indexPath) as UITableViewCell
         
@@ -111,10 +102,10 @@ class GPXFilesTableViewController: UITableViewController, UINavigationBarDelegat
         sheet.addButtonWithTitle("Send by email")
         sheet.addButtonWithTitle("Load in Map")
         sheet.addButtonWithTitle("Cancel")
+        sheet.addButtonWithTitle("Rename")
         sheet.addButtonWithTitle("Delete")
         sheet.cancelButtonIndex = 2
-        sheet.destructiveButtonIndex = 3
-        
+        sheet.destructiveButtonIndex = 4
         
         sheet.delegate = self
         sheet.showInView(self.view)
@@ -130,7 +121,9 @@ class GPXFilesTableViewController: UITableViewController, UINavigationBarDelegat
             self.actionLoadFileAtIndex(self.selectedRowIndex)
         case 2:
             print("ActionSheet: Cancel")
-        case 3: //Delete
+        case 3: //Rename
+            self.actionRenameFileAtIndex(self.selectedRowIndex)
+        case 4: //Delete
             self.actionDeleteFileAtIndex(self.selectedRowIndex)
         default: //cancel
             print("action Sheet do nothing")
@@ -147,6 +140,19 @@ class GPXFilesTableViewController: UITableViewController, UINavigationBarDelegat
         // Allow editing for all rows except the initial "empty list"-placeholder row.
         // The string comparison is not optimal, but does the job.
         return gpxFilesFound
+    }
+    
+    override func tableView(tableView: UITableView,
+                            editActionsForRowAtIndexPath indexPath: NSIndexPath) -> [UITableViewRowAction]? {
+        let deleteRowAction = UITableViewRowAction(style: UITableViewRowActionStyle.Destructive, title: "Delete", handler:{action, indexpath in
+            self.actionDeleteFileAtIndex(indexPath.row)
+        });
+        
+        let moreRowAction = UITableViewRowAction(style: UITableViewRowActionStyle.Normal, title: "Rename", handler:{action, indexpath in
+            self.actionRenameFileAtIndex(indexPath.row);
+        });
+        
+        return [deleteRowAction, moreRowAction];
     }
     
     //#pragma mark - UIAlertView delegate methods
@@ -166,6 +172,21 @@ class GPXFilesTableViewController: UITableViewController, UINavigationBarDelegat
         fileList.removeObjectAtIndex(rowIndex)
         let indexPath = NSIndexPath(forRow: rowIndex, inSection: 0)
         tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Fade)
+        tableView.reloadData()
+    }
+    
+    func actionRenameFileAtIndex(rowIndex: Int) {
+        // TODO: implement UI
+        let newFilename = "test2"
+        
+        //Rename File
+        guard let filename: String = fileList.objectAtIndex(rowIndex) as? String else {
+            return
+        }
+        
+        GPXFileManager.renameFile(filename, newFilename: newFilename)
+        //Rename in list and reload Table
+        fileList.replaceObjectAtIndex(rowIndex, withObject: newFilename)
         tableView.reloadData()
     }
     
