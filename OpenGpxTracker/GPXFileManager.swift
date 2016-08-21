@@ -107,4 +107,29 @@ class GPXFileManager: NSObject {
             }
         }
     }
+    
+    class func renameFile(filename: String, newFilename: String) {
+        // Early bail if nothing to do
+        if filename == newFilename {
+            return;
+        }
+        
+        let fileURL: NSURL = self.URLForFilename(filename)
+        let newFileURL: NSURL = self.URLForFilename(newFilename)
+        let defaultManager = NSFileManager.defaultManager()
+        var error: NSError?
+        let renamed: Bool
+        do {
+            try defaultManager.moveItemAtPath(fileURL.path!, toPath: newFileURL.path!)
+            renamed = true
+        } catch let error1 as NSError {
+            error = error1
+            renamed = false
+        }
+        if !renamed {
+            if let e = error {
+                print("[ERROR] GPXFileManager:renameFile: \(fileURL) : \(e.localizedDescription)")
+            }
+        }
+    }
 }
